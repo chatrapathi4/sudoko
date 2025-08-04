@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sudoku Game - 100 Levels</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background: linear-gradient(135deg, #f0f8ff, #add8e6);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(9, 40px);
+            grid-template-rows: repeat(9, 40px);
+            gap: 1px;
+            background-color: #ffffff;
+            padding: 4px;
+            border: 4px solid #000;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+        .cell {
+            width: 40px;
+            height: 40px;
+            text-align: center;
+            font-size: 18px;
+            border: 1px solid black;
+            background-color: #ffffff;
+        }
+        .cell[data-box="true"] {
+            border: 2px solid #000;
+        }
+        .popup {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
+            text-align: center;
+            z-index: 1000;
+        }
+        .popup button {
+            margin: 5px;
+            padding: 10px;
+            font-size: 16px;
+            border: none;
+            background: #0073e6;
+            color: white;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Sudoku Game - 100 Levels</h1>
+    <div class="game-container">
+        <div class="level-display">Level: <span id="current-level">1</span></div>
+        <div class="timer-display">Time: <span id="timer">0</span> seconds</div>
+        <button onclick="startGame()">Start Game</button>
+        <div class="grid" id="sudoku-grid"></div>
+        <button onclick="checkSudoku()">Check Solution</button>
+    </div>
+
+    <div class="popup" id="popup">
+        <p id="popup-message"></p>
+        <button onclick="nextLevel()">Next Level</button>
+        <button onclick="replayLevel()">Replay</button>
+        <button onclick="quitGame()">Quit</button>
+    </div>
+
+    <script>
+        let currentLevel = 1;
+        let timerInterval;
+        let startTime;
+
+        function startTimer() {
+            clearInterval(timerInterval);
+            startTime = Date.now();
+            timerInterval = setInterval(() => {
+                let elapsedTime = Math.floor((Date.now() - startTime) / 1000);
+                document.getElementById("timer").innerText = elapsedTime;
+            }, 1000);
+        }
+
+        function startGame() {
+            document.getElementById("timer").innerText = "0";
+            startTimer();
+            generateSudoku();
+        }
+
+        function generateSudoku() {
+            document.getElementById("current-level").innerText = currentLevel;
+            const grid = document.getElementById("sudoku-grid");
+            grid.innerHTML = "";
+            let clues = currentLevel <= 25 ? 45 : currentLevel <= 50 ? 35 : currentLevel <= 85 ? 25 : 17;
+            let sudoku = createSudokuPuzzle(clues);
+            sudoku.forEach((row, i) => {
+                row.forEach((num, j) => {
+                    let cell = document.createElement("input");
+                    cell.type = "text";
+                    cell.classList.add("cell");
+                    cell.maxLength = 1;
+                    if (num !== 0) {
+                        cell.value = num;
+                        cell.readOnly = true;
+                    }
+                    grid.appendChild(cell);
+                });
+            });
+        }
+
+        function createSudokuPuzzle(clues) {
+            let grid = Array.from({ length: 9 }, () => Array(9).fill(0));
+            fillGrid(grid);
+            removeNumbers(grid, clues);
+            return grid;
+        }
+
+        function fillGrid(grid) {
+            for (let i = 0; i < 9; i++) {
+                for (let j = 0; j < 9; j++) {
+                    grid[i][j] = ((i * 3 + Math.floor(i / 3) + j) % 9) + 1;
+                }
+            }
+        }
+
+        function removeNumbers(grid, clues) {
+            let removed = 81 - clues;
+            while (removed > 0) {
+                let row = Math.floor(Math.random() * 9);
+                let col = Math.floor(Math.random() * 9);
+                if (grid[row][col] !== 0) {
+                    grid[row][col] = 0;
+                    removed--;
+                }
+            }
+        }
+
+        function checkSudoku() {
+            clearInterval(timerInterval);
+            let elapsedTime = Math.floor((Date.now() - startTime) / 1000);
+            document.getElementById("popup-message").innerText = `You completed the level in ${elapsedTime} seconds!`;
+            document.getElementById("popup").style.display = "block";
+        }
+
+        function nextLevel() {
+            document.getElementById("popup").style.display = "none";
+            if (currentLevel < 100) {
+                currentLevel++;
+                startGame();
+            } else {
+                alert("Congratulations! You have completed all 100 levels.");
+            }
+        }
+
+        function replayLevel() {
+            document.getElementById("popup").style.display = "none";
+            startGame();
+        }
+
+        function quitGame() {
+            document.getElementById("popup").style.display = "none";
+            alert("Thank you for playing!");
+        }
+    </script>
+</body>
+</html>
